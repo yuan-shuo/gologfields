@@ -6,12 +6,14 @@
 [![Release](https://img.shields.io/github/release/yuan-shuo/gologfields.svg)](https://github.com/yuan-shuo/gologfields/releases/latest)
 [![Go Version](https://img.shields.io/badge/go%20version-%3E=1.25-61CFDD.svg)](https://golang.org/)
 
+日志代码散落在各处？字段名还在用不统一的字符串？想统一日志字段名发现每个微服务都要自己手搓logger包一个一个写字段返回函数和脱敏方法？现在一份yaml直接搞定，无论是字段名定义、自定义类型定义、脱敏接口实现，都由此工具为你生成，你需要做的事会少之又少
+
 一个 Go 代码生成工具，根据 YAML 配置生成结构化日志字段代码，支持自动脱敏功能。
 
 ## 功能特性
 
 - **类型安全**：为每个日志字段生成专门的类型
-- **IDE 友好**：通过 `W` 前缀的构造器函数，IDE 自动补全一目了然
+- **IDE 友好**：通过 `W` 前缀的构造器函数，IDE 自动补全一目了然（试着敲个logger.W，IDE会为你列出所有你的日志字段，不用你强行记住什么，这个约定很方便的）
 - **自动脱敏**：支持敏感数据自动脱敏，符合 `go-zero` 的 `Sensitive` 接口
 - **自动补全 mask 函数**：自动生成未实现的脱敏函数存根，避免手动查看类型
 - **灵活配置**：通过 YAML 文件配置字段，支持自定义 JSON 字段名
