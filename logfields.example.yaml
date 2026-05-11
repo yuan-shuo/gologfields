@@ -1,0 +1,28 @@
+# logger_fields.yaml
+# 日志字段定义文件，每行一个字段
+
+- name: UserID
+  type: int64
+  json_name: user_id
+  mask: true
+  comment: 用户ID
+
+- name: UserName
+  type: string
+  comment: 用户名
+
+- name: Phone
+  type: string
+  mask: true
+  comment: 手机号
+
+- name: Email
+  type: string
+  json_name: email
+  mask: true
+
+- name: OrderID
+  type: int64
+  json_name: order_id
+  mask: true
+  comment: 订单ID

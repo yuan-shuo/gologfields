@@ -1,0 +1,137 @@
+// // 这个可不是项目代码，这个是项目准备要生成的代码范例
+// /*
+// Package logger 提供日志增强功能，包括敏感数据自动脱敏和结构化日志字段构造。
+
+// # 命名约定
+
+// 本包遵循统一的命名约定，确保代码一致性和可维护性：
+
+// 1. 类型定义：使用业务语义的命名（如 UserID, Phone, Email）
+//   - 类型实现 MaskSensitive() any 方法来自动脱敏（可选）
+//   - 不需要脱敏的类型可以不实现该方法
+
+// 2. 字段构造器：使用 W + 类型名 的命名格式（W 代表 WithField）
+//   - 例如：WUserID(), WPhone(), WEmail()
+//   - 所有构造器返回 logx.LogField，可直接传给 Infow/Errorw 等方法
+
+// 3. 字段名常量：在 fieldKeys 结构体中定义，与类型名保持一致，写法为字段名的全小写+下划线分割
+//   - 例如：fieldKeys.UserID = "user_id", fieldKeys.Phone = "phone"
+
+// 若能够维护此约定，在实际使用时只要敲出 logger.W，就能通过IDE很清晰的看到所有日志字段了，不需要记住一大堆什么了
+
+// # 使用示例
+
+// import "yourproject/logger"
+
+// 	func (l *Logic) Handle() {
+// 		// 自动脱敏的用户ID字段
+// 		l.Logger.Infow("用户登录",
+// 			logger.WUserID(12345678),           // 输出: "user_id": "12****78"
+// 			logger.WPhone("13812345678"),        // 输出: "phone": "138****5678"
+// 			logger.WUserName("张三"),              // 输出: "user_name": "张三"
+// 		)
+// 	}
+
+// # 添加新类型
+
+// 如需添加新的敏感类型，按以下步骤：
+//  1. 在 fieldKeys 中添加字段名
+//  2. 定义新类型（如 type OrderID int64）
+//  3. 实现 MaskSensitive() any 方法（如需要脱敏）
+//  4. 定义 W 前缀的构造器函数
+// */
+// package logger
+
+// import (
+// 	"strconv"
+
+// 	"github.com/zeromicro/go-zero/core/logx"
+// )
+
+// // fieldKeys 日志字段名常量（与类型名保持一致）
+// var fieldKeys = struct {
+// 	UserID   string
+// 	UserName string
+// 	Phone    string
+// 	Email    string
+// }{
+// 	UserID:   "user_id",
+// 	UserName: "user_name",
+// 	Phone:    "phone",
+// 	Email:    "email",
+// }
+
+// // UserID 用户ID类型（自动脱敏）
+// //
+// // 脱敏规则：
+// //   - 长度 <= 4：全部替换为 "****"
+// //   - 长度 > 4：显示前2位和后2位，中间用 "****" 替换
+// //   - 示例：12345678 -> "12****78"
+// type UserID int64
+
+// // WUserID 创建用户ID日志字段
+// func WUserID(uid int64) logx.LogField {
+// 	return logx.Field(fieldKeys.UserID, UserID(uid))
+// }
+
+// // MaskSensitive 实现 Sensitive 接口，对用户ID进行脱敏
+// func (u UserID) MaskSensitive() any {
+// 	s := strconv.FormatInt(int64(u), 10)
+// 	if len(s) <= 4 {
+// 		return "****"
+// 	}
+// 	return s[:2] + "****" + s[len(s)-2:]
+// }
+
+// // UserName 用户名类型（不需要脱敏）
+// //
+// // 用户名通常不包含敏感信息，因此不实现 MaskSensitive 方法。
+// // 如业务需要脱敏（如昵称），可后续添加实现。
+// type UserName string
+
+// // WUserName 创建用户名字段
+// func WUserName(name string) logx.LogField {
+// 	return logx.Field(fieldKeys.UserName, UserName(name))
+// }
+
+// // Phone 手机号类型（自动脱敏）
+// //
+// // 脱敏规则：
+// //   - 长度 < 7：全部替换为 "****"
+// //   - 长度 >= 7：显示前3位和后4位，中间用 "****" 替换
+// //   - 示例：13812345678 -> "138****5678"
+// type Phone string
+
+// // WPhone 创建手机号日志字段
+// func WPhone(phone string) logx.LogField {
+// 	return logx.Field(fieldKeys.Phone, Phone(phone))
+// }
+
+// // MaskSensitive 实现 Sensitive 接口，对手机号进行脱敏
+// func (p Phone) MaskSensitive() any {
+// 	s := string(p)
+// 	if len(s) < 7 {
+// 		return "****"
+// 	}
+// 	return s[:3] + "****" + s[len(s)-4:]
+// }
+
+// // // 示例用法
+// // package logger_test
+
+// // import (
+// //     "yourproject/logger"
+// //     "github.com/zeromicro/go-zero/core/logx"
+// // )
+
+// // func ExampleWUserID() {
+// //     ctx := context.Background()
+// //     log := logx.WithContext(ctx)
+
+// //     // 结构化日志，自动脱敏
+// //     log.Infow("用户操作",
+// //         logger.WUserID(12345678),     // 输出 "user_id": "12****78"
+// //         logger.WPhone("13812345678"), // 输出 "phone": "138****5678"
+// //         logger.WUserName("张三"),      // 输出 "user_name": "张三"
+// //     )
+// // }

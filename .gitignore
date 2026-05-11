@@ -1,0 +1,39 @@
+# 编译产物
+*.exe
+*.dll
+*.so
+*.dylib
+gologfields
+
+# 生成的代码文件（用户应该自己生成）
+*_gen.go
+
+# 测试输出目录
+/example_output/
+/test_output/
+
+# Go 相关
+/vendor/
+/bin/
+/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 测试和覆盖率
+*.test
+*.out
+coverage.txt
+coverage.html
+**coverage**
+
+# 保留示例文件
+!logfields.example.yaml
