@@ -7,6 +7,7 @@
 - **类型安全**：为每个日志字段生成专门的类型
 - **IDE 友好**：通过 `W` 前缀的构造器函数，IDE 自动补全一目了然
 - **自动脱敏**：支持敏感数据自动脱敏，符合 `go-zero` 的 `Sensitive` 接口
+- **自动补全 mask 函数**：自动生成未实现的脱敏函数存根，避免手动查看类型
 - **灵活配置**：通过 YAML 文件配置字段，支持自定义 JSON 字段名
 - **类型校验**：自动校验 YAML 中的类型是否为有效的 Go 类型
 
@@ -54,16 +55,43 @@ go build -o gologfields .
 ### 2. 运行生成工具
 
 ```bash
+# 仅生成日志字段代码
 gologfields -f logfields.yaml -d ./logger
+
+# 同时生成日志字段和 mask 函数存根
+gologfields -f logfields.yaml -d ./logger -m
 ```
 
 参数说明：
 - `-f`: YAML 配置文件路径（必填）
 - `-d`: 输出目录路径（必填）
+- `-m`: 生成/追加 mask 函数存根（可选，默认不生成）
 
 ### 3. 实现脱敏函数（仅对 mask: true 的字段）
 
-生成的代码会调用 `maskXXX` 函数，你需要手动创建 `mask.go` 文件实现这些函数：
+如果需要脱敏功能，使用 `-m` 参数运行工具，会自动生成 `mask.go` 文件：
+
+```go
+package logger
+
+// maskUserID 对用户ID进行脱敏
+// 请在此实现具体的脱敏逻辑
+func maskUserID(v int64) any {
+    // TODO: 实现用户ID脱敏逻辑
+    return v
+}
+
+// maskPhone 对手机号进行脱敏
+// 请在此实现具体的脱敏逻辑
+func maskPhone(v string) any {
+    // TODO: 实现手机号脱敏逻辑
+    return v
+}
+```
+
+你只需要填充具体的脱敏逻辑即可。当你添加新的 mask 字段后，再次使用 `-m` 运行工具，会自动追加新的函数存根，不会覆盖已有的实现。
+
+**示例：实现脱敏逻辑**
 
 ```go
 package logger
@@ -71,6 +99,7 @@ package logger
 import "strconv"
 
 // maskUserID 对用户ID进行脱敏
+// 脱敏规则：显示前2位和后2位，中间用 **** 替换
 func maskUserID(v int64) any {
     s := strconv.FormatInt(v, 10)
     if len(s) <= 4 {
@@ -80,6 +109,7 @@ func maskUserID(v int64) any {
 }
 
 // maskPhone 对手机号进行脱敏
+// 脱敏规则：显示前3位和后4位，中间用 **** 替换
 func maskPhone(v string) any {
     if len(v) < 7 {
         return "****"

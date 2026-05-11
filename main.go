@@ -5,9 +5,11 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/yuan-shuo/gologfields/internal/config"
 	"github.com/yuan-shuo/gologfields/internal/generator"
+	"github.com/yuan-shuo/gologfields/internal/maskgen"
 )
 
 func main() {
@@ -15,6 +17,7 @@ func main() {
 	var (
 		yamlFile  = flag.String("f", "", "Path to the YAML configuration file (required)")
 		outputDir = flag.String("d", "", "Output directory for the generated Go file (required)")
+		genMask   = flag.Bool("m", false, "Generate mask functions (default: false)")
 	)
 	flag.Parse()
 
@@ -54,4 +57,33 @@ func main() {
 	}
 
 	fmt.Printf("Generated %s/logfields_gen.go\n", *outputDir)
+
+	// 生成 mask 函数（仅在指定 -m 时）
+	if *genMask {
+		maskPath := filepath.Join(*outputDir, "mask.go")
+
+		packageName := filepath.Base(*outputDir)
+		if packageName == "." || packageName == "/" || packageName == "" {
+			packageName = "logger"
+		}
+
+		maskGen := maskgen.New(packageName)
+		if err := maskGen.Generate(maskPath, fields); err != nil {
+			fmt.Fprintf(os.Stderr, "Error generating mask functions: %v\n", err)
+			os.Exit(1)
+		}
+
+		// 检查是否有 mask 字段
+		hasMask := false
+		for _, f := range fields {
+			if f.Mask {
+				hasMask = true
+				break
+			}
+		}
+
+		if hasMask {
+			fmt.Printf("Generated/Updated %s\n", maskPath)
+		}
+	}
 }
