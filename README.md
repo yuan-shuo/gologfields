@@ -1,6 +1,6 @@
 # gologfields
 
-[![CI](https://github.com/yuan-shuo/gologfields/actions/workflows/ci/badge.svg)](https://github.com/yuan-shuo/gologfields/actions/workflows/ci.yml)
+[![CI](https://github.com/yuan-shuo/gologfields/workflows/ci/badge.svg)](https://github.com/yuan-shuo/gologfields/actions/workflows/ci.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/yuan-shuo/gologfields)](https://goreportcard.com/report/github.com/yuan-shuo/gologfields)
 [![codecov](https://codecov.io/gh/yuan-shuo/gologfields/branch/main/graph/badge.svg)](https://codecov.io/gh/yuan-shuo/gologfields)
 [![Release](https://img.shields.io/github/release/yuan-shuo/gologfields.svg)](https://github.com/yuan-shuo/gologfields/releases/latest)
