@@ -52,9 +52,8 @@ go build -o gologfields .
 ```
 
 **字段说明：**
-- `fname`: 字段名（snake_case），会自动转换为 PascalCase 作为 Go 类型名
+- `fname`: 日志字段名（snake_case），会自动转换为 PascalCase 作为 Go 类型名
 - `type`: Go 类型（string, int64, float64, bool 等）
-- `json_name`: JSON 字段名（可选，默认使用 fname）
 - `mask`: 是否需要脱敏（可选，默认 false）
 - `comment`: 字段注释说明（可选）
 

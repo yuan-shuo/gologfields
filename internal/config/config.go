@@ -39,11 +39,10 @@ var validTypes = map[string]bool{
 
 // rawFieldConfig 表示 YAML 原始配置
 type rawFieldConfig struct {
-	FName    string `yaml:"fname"`     // 字段名（snake_case）
-	Type     string `yaml:"type"`      // 类型（int64, string, float64等）
-	JSONName string `yaml:"json_name"` // JSON字段名（可选，默认使用 fname）
-	Mask     bool   `yaml:"mask"`      // 是否需要脱敏
-	Comment  string `yaml:"comment"`   // 注释说明
+	FName   string `yaml:"fname"`   // 字段名（snake_case），同时作为 JSON 字段名
+	Type    string `yaml:"type"`    // 类型（int64, string, float64等）
+	Mask    bool   `yaml:"mask"`    // 是否需要脱敏
+	Comment string `yaml:"comment"` // 注释说明
 }
 
 // FieldConfig 表示日志字段配置（内部使用，包含生成的字段）
@@ -95,18 +94,12 @@ func Load(path string) ([]FieldConfig, error) {
 			return nil, err
 		}
 
-		// 从 fname 生成 Name（PascalCase）
+		// 从 fname 生成 Name（PascalCase），fname 同时作为 JSON 字段名
 		fields[i].Name = toPascalCase(raw.FName)
+		fields[i].JSONName = raw.FName
 		fields[i].Type = raw.Type
 		fields[i].Mask = raw.Mask
 		fields[i].Comment = raw.Comment
-
-		// JSONName：优先使用 json_name，否则使用 fname
-		if raw.JSONName != "" {
-			fields[i].JSONName = raw.JSONName
-		} else {
-			fields[i].JSONName = raw.FName
-		}
 
 		if err := fields[i].Validate(); err != nil {
 			return nil, err
