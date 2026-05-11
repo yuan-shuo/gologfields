@@ -1,5 +1,11 @@
 # gologfields
 
+[![CI](https://github.com/yuan-shuo/gologfields/actions/workflows/ci/badge.svg)](https://github.com/yuan-shuo/gologfields/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/yuan-shuo/gologfields)](https://goreportcard.com/report/github.com/yuan-shuo/gologfields)
+[![codecov](https://codecov.io/gh/yuan-shuo/gologfields/branch/main/graph/badge.svg)](https://codecov.io/gh/yuan-shuo/gologfields)
+[![Release](https://img.shields.io/github/release/yuan-shuo/gologfields.svg)](https://github.com/yuan-shuo/gologfields/releases/latest)
+[![Go Version](https://img.shields.io/badge/go%20version-%3E=1.25-61CFDD.svg)](https://golang.org/)
+
 一个 Go 代码生成工具，根据 YAML 配置生成结构化日志字段代码，支持自动脱敏功能。
 
 ## 功能特性
@@ -161,7 +167,6 @@ func main() {
 |------|------|------|------|
 | `fname` | string | 是 | 字段名（snake_case），如 `user_id`, `phone_number` |
 | `type` | string | 是 | Go 类型，如 `string`, `int64`, `float64`, `bool` 等 |
-| `json_name` | string | 否 | JSON 字段名（可选，默认使用 `fname`） |
 | `mask` | bool | 否 | 是否需要脱敏，默认为 `false` |
 | `comment` | string | 否 | 字段注释说明 |
 
