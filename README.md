@@ -31,26 +31,40 @@ go build -o gologfields .
 
 ```yaml
 # logfields.yaml
-- name: UserID
+- fname: user_id
   type: int64
-  json_name: user_id
   mask: true
   comment: 用户ID
 
-- name: UserName
+- fname: user_name
   type: string
   comment: 用户名
 
-- name: Phone
+- fname: phone
   type: string
   mask: true
   comment: 手机号
 
-- name: Email
+- fname: email
   type: string
   mask: true
   comment: 邮箱
 ```
+
+**字段说明：**
+- `fname`: 字段名（snake_case），会自动转换为 PascalCase 作为 Go 类型名
+- `type`: Go 类型（string, int64, float64, bool 等）
+- `json_name`: JSON 字段名（可选，默认使用 fname）
+- `mask`: 是否需要脱敏（可选，默认 false）
+- `comment`: 字段注释说明（可选）
+
+**snake_case 命名规范（OpenTelemetry）：**
+- 必须以小写字母开头
+- 只能包含小写字母、数字和下划线
+- 不能连续出现多个下划线
+- 不能以下划线开头或结尾
+- 有效示例：`user_id`, `http_request_duration`, `trace_id`
+- 无效示例：`UserID`, `user-id`, `user__id`, `_user_id`, `user_id_`, `123_user`
 
 ### 2. 运行生成工具
 
@@ -74,18 +88,18 @@ gologfields -f logfields.yaml -d ./logger -m
 ```go
 package logger
 
-// maskUserID 对用户ID进行脱敏
+// maskUserId 对用户ID进行脱敏
 // 请在此实现具体的脱敏逻辑
-func maskUserID(v int64) any {
+func maskUserId(userId int64) any {
     // TODO: 实现用户ID脱敏逻辑
-    return v
+    return userId
 }
 
 // maskPhone 对手机号进行脱敏
 // 请在此实现具体的脱敏逻辑
-func maskPhone(v string) any {
+func maskPhone(phone string) any {
     // TODO: 实现手机号脱敏逻辑
-    return v
+    return phone
 }
 ```
 
@@ -98,10 +112,10 @@ package logger
 
 import "strconv"
 
-// maskUserID 对用户ID进行脱敏
+// maskUserId 对用户ID进行脱敏
 // 脱敏规则：显示前2位和后2位，中间用 **** 替换
-func maskUserID(v int64) any {
-    s := strconv.FormatInt(v, 10)
+func maskUserId(userId int64) any {
+    s := strconv.FormatInt(userId, 10)
     if len(s) <= 4 {
         return "****"
     }
@@ -110,11 +124,11 @@ func maskUserID(v int64) any {
 
 // maskPhone 对手机号进行脱敏
 // 脱敏规则：显示前3位和后4位，中间用 **** 替换
-func maskPhone(v string) any {
-    if len(v) < 7 {
+func maskPhone(phone string) any {
+    if len(phone) < 7 {
         return "****"
     }
-    return v[:3] + "****" + v[len(v)-4:]
+    return phone[:3] + "****" + phone[len(phone)-4:]
 }
 ```
 
@@ -135,7 +149,7 @@ func main() {
 
     // 结构化日志，自动脱敏
     log.Infow("用户登录",
-        logger.WUserID(12345678),           // 输出: "user_id": "12****78"
+        logger.WUserId(12345678),           // 输出: "user_id": "12****78"
         logger.WPhone("13812345678"),       // 输出: "phone": "138****5678"
         logger.WUserName("张三"),            // 输出: "user_name": "张三"
     )
@@ -146,11 +160,15 @@ func main() {
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `name` | string | 是 | 字段名，使用 PascalCase |
+| `fname` | string | 是 | 字段名（snake_case），如 `user_id`, `phone_number` |
 | `type` | string | 是 | Go 类型，如 `string`, `int64`, `float64`, `bool` 等 |
-| `json_name` | string | 否 | JSON 字段名，默认自动转为 snake_case |
+| `json_name` | string | 否 | JSON 字段名（可选，默认使用 `fname`） |
 | `mask` | bool | 否 | 是否需要脱敏，默认为 `false` |
 | `comment` | string | 否 | 字段注释说明 |
+
+**命名转换规则：**
+- `fname: user_id` → Go 类型名: `UserId`, JSON 字段名: `user_id`
+- `fname: phone_number` → Go 类型名: `PhoneNumber`, JSON 字段名: `phone_number`
 
 ### 支持的 Go 类型
 

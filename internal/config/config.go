@@ -4,10 +4,15 @@ package config
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"gopkg.in/yaml.v3"
 )
+
+// snakeCaseRegex 匹配有效的 snake_case 格式（OpenTelemetry 规范）
+// 规则：小写字母、数字、下划线，不能以数字开头，不能连续下划线，不能以下划线开头或结尾
+var snakeCaseRegex = regexp.MustCompile(`^[a-z][a-z0-9]*(_[a-z0-9]+)*$`)
 
 // 支持的 Go 基础类型
 var validTypes = map[string]bool{
@@ -32,13 +37,22 @@ var validTypes = map[string]bool{
 	"complex128": true,
 }
 
-// FieldConfig 表示日志字段配置
-type FieldConfig struct {
-	Name     string `yaml:"name"`      // 字段名（PascalCase）
+// rawFieldConfig 表示 YAML 原始配置
+type rawFieldConfig struct {
+	FName    string `yaml:"fname"`     // 字段名（snake_case）
 	Type     string `yaml:"type"`      // 类型（int64, string, float64等）
-	JSONName string `yaml:"json_name"` // JSON字段名（可选，默认转snake_case）
+	JSONName string `yaml:"json_name"` // JSON字段名（可选，默认使用 fname）
 	Mask     bool   `yaml:"mask"`      // 是否需要脱敏
 	Comment  string `yaml:"comment"`   // 注释说明
+}
+
+// FieldConfig 表示日志字段配置（内部使用，包含生成的字段）
+type FieldConfig struct {
+	Name     string // 字段名（PascalCase，从 fname 自动生成）
+	Type     string // 类型
+	JSONName string // JSON字段名
+	Mask     bool   // 是否需要脱敏
+	Comment  string // 注释说明
 }
 
 // Validate 校验字段配置是否合法
@@ -68,15 +82,30 @@ func Load(path string) ([]FieldConfig, error) {
 		return nil, fmt.Errorf("reading YAML file %s: %w", path, err)
 	}
 
-	var fields []FieldConfig
-	if err := yaml.Unmarshal(data, &fields); err != nil {
+	var rawFields []rawFieldConfig
+	if err := yaml.Unmarshal(data, &rawFields); err != nil {
 		return nil, fmt.Errorf("parsing YAML: %w", err)
 	}
 
-	// 填充默认值并校验
-	for i := range fields {
-		if fields[i].JSONName == "" {
-			fields[i].JSONName = toSnakeCase(fields[i].Name)
+	// 转换并填充默认值
+	fields := make([]FieldConfig, len(rawFields))
+	for i, raw := range rawFields {
+		// 校验 fname 是否符合 snake_case 规范
+		if err := validateSnakeCase(raw.FName); err != nil {
+			return nil, err
+		}
+
+		// 从 fname 生成 Name（PascalCase）
+		fields[i].Name = toPascalCase(raw.FName)
+		fields[i].Type = raw.Type
+		fields[i].Mask = raw.Mask
+		fields[i].Comment = raw.Comment
+
+		// JSONName：优先使用 json_name，否则使用 fname
+		if raw.JSONName != "" {
+			fields[i].JSONName = raw.JSONName
+		} else {
+			fields[i].JSONName = raw.FName
 		}
 
 		if err := fields[i].Validate(); err != nil {
@@ -87,26 +116,37 @@ func Load(path string) ([]FieldConfig, error) {
 	return fields, nil
 }
 
-// toSnakeCase 将 PascalCase 转换为 snake_case
-func toSnakeCase(s string) string {
+// validateSnakeCase 校验字符串是否符合 snake_case 规范（OpenTelemetry 命名规范）
+// 规则：
+//   - 必须以小写字母开头
+//   - 只能包含小写字母、数字和下划线
+//   - 不能连续出现多个下划线
+//   - 不能以下划线开头或结尾
+//   - 示例：user_id, http_request_duration, trace_id
+func validateSnakeCase(s string) error {
+	if strings.TrimSpace(s) == "" {
+		return fmt.Errorf("fname is required")
+	}
+
+	if !snakeCaseRegex.MatchString(s) {
+		return fmt.Errorf("invalid fname '%s': must be snake_case format (lowercase letters, numbers, underscores; start with letter; no consecutive/trailing underscores), see OpenTelemetry naming conventions", s)
+	}
+
+	return nil
+}
+
+// toPascalCase 将 snake_case 转换为 PascalCase
+// 例如：user_id -> UserId, phone_number -> PhoneNumber
+func toPascalCase(s string) string {
 	if s == "" {
 		return ""
 	}
 
-	var result []rune
-	for i, r := range s {
-		if i > 0 && r >= 'A' && r <= 'Z' {
-			result = append(result, '_')
-		}
-		result = append(result, r)
-	}
-
-	// 转换为小写
-	for i := range result {
-		if result[i] >= 'A' && result[i] <= 'Z' {
-			result[i] = result[i] + ('a' - 'A')
+	parts := strings.Split(s, "_")
+	for i, part := range parts {
+		if len(part) > 0 {
+			parts[i] = strings.ToUpper(part[:1]) + part[1:]
 		}
 	}
-
-	return string(result)
+	return strings.Join(parts, "")
 }

@@ -1,1 +1,1 @@
-go run main.go -f logfields.example.yaml -d ./example_output
+go run main.go -f logfields.example.yaml -d ./example_output -m

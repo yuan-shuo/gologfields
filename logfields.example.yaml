@@ -1,28 +1,33 @@
 # logger_fields.yaml
-# 日志字段定义文件，每行一个字段
+# 日志字段定义文件
 
-- name: UserID
+# 字段说明：
+# - fname: 字段名（snake_case），会自动转换为 PascalCase 作为类型名
+# - type: Go 类型（string, int64, float64, bool 等）
+# - json_name: JSON 字段名（可选，默认使用 fname）
+# - mask: 是否需要脱敏（可选，默认 false）
+# - comment: 字段注释说明（可选）
+
+- fname: user_id
   type: int64
-  json_name: user_id
   mask: true
   comment: 用户ID
 
-- name: UserName
+- fname: user_name
   type: string
   comment: 用户名
 
-- name: Phone
+- fname: phone
   type: string
   mask: true
   comment: 手机号
 
-- name: Email
+- fname: email
   type: string
-  json_name: email
   mask: true
+  comment: 邮箱
 
-- name: OrderID
+- fname: order_id
   type: int64
-  json_name: order_id
   mask: true
   comment: 订单ID

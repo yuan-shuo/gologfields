@@ -107,6 +107,14 @@ func (g *Generator) parseExistingMaskFile(path string) (string, map[string]bool,
 	return string(content), funcs, nil
 }
 
+// toLowerFirst 将字符串首字母小写
+func toLowerFirst(s string) string {
+	if s == "" {
+		return ""
+	}
+	return strings.ToLower(s[:1]) + s[1:]
+}
+
 // generateMaskCode 生成 mask 函数代码
 func (g *Generator) generateMaskCode(fields []config.FieldConfig, isNewFile bool) string {
 	var sb strings.Builder
@@ -117,15 +125,16 @@ func (g *Generator) generateMaskCode(fields []config.FieldConfig, isNewFile bool
 
 	for _, field := range fields {
 		funcName := "mask" + field.Name
+		paramName := toLowerFirst(field.Name)
 		desc := field.Comment
 		if desc == "" {
 			desc = field.Name
 		}
 		sb.WriteString(fmt.Sprintf("// %s 对%s进行脱敏\n", funcName, desc))
 		sb.WriteString("// 请在此实现具体的脱敏逻辑\n")
-		sb.WriteString(fmt.Sprintf("func %s(v %s) any {\n", funcName, field.Type))
+		sb.WriteString(fmt.Sprintf("func %s(%s %s) any {\n", funcName, paramName, field.Type))
 		sb.WriteString(fmt.Sprintf("\t// TODO: 实现%s脱敏逻辑\n", desc))
-		sb.WriteString("\treturn v\n")
+		sb.WriteString(fmt.Sprintf("\treturn %s\n", paramName))
 		sb.WriteString("}\n\n")
 	}
 
