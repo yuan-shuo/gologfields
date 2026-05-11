@@ -2,7 +2,7 @@
 # 日志字段定义文件
 
 # 字段说明：
-# - fname: 字段名（snake_case），会自动转换为 PascalCase 作为类型名，同时作为 JSON 字段名
+# - fname: 日志字段名（snake_case），会自动转换为 PascalCase 作为类型名
 # - type: Go 类型（string, int64, float64, bool 等）
 # - mask: 是否需要脱敏（可选，默认 false）
 # - comment: 字段注释说明（可选）
