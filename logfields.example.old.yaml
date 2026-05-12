@@ -1,0 +1,32 @@
+# logfields.yaml
+# 日志字段定义文件
+
+# 字段说明：
+# - fname: 日志字段名（snake_case），会自动转换为 PascalCase 作为类型名
+# - type: Go 类型（string, int64, float64, bool 等）
+# - mask: 是否需要脱敏（可选，默认 false）
+# - comment: 字段注释说明（可选）
+
+- fname: user_id
+  type: int64
+  mask: true
+  comment: 用户ID
+
+- fname: user_name
+  type: string
+  comment: 用户名
+
+- fname: phone
+  type: string
+  mask: true
+  comment: 手机号
+
+- fname: email
+  type: string
+  mask: true
+  comment: 邮箱
+
+- fname: order_id
+  type: int64
+  mask: true
+  comment: 订单ID

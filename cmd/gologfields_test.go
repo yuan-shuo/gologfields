@@ -95,11 +95,12 @@ func TestRun(t *testing.T) {
 	// 创建临时目录
 	tempDir := t.TempDir()
 
-	// 创建测试 YAML 文件（数组格式）
-	yamlContent := `- fname: user_id
+	// 创建测试 YAML 文件（新格式）
+	yamlContent := `logfields:
+- name: user_id
   type: int64
   comment: 用户ID
-- fname: user_name
+- name: user_name
   type: string
   comment: 用户名
 `
@@ -133,8 +134,9 @@ func TestRunWithMask(t *testing.T) {
 	// 创建临时目录
 	tempDir := t.TempDir()
 
-	// 创建测试 YAML 文件（带 mask，数组格式）
-	yamlContent := `- fname: phone
+	// 创建测试 YAML 文件（带 mask，新格式）
+	yamlContent := `logfields:
+- name: phone
   type: string
   comment: 手机号
   mask: true
@@ -229,11 +231,12 @@ func TestRunWithExistingMaskFile(t *testing.T) {
 	tempDir := t.TempDir()
 
 	// 创建测试 YAML 文件
-	yamlContent := `- fname: phone
+	yamlContent := `logfields:
+- name: phone
   type: string
   comment: 手机号
   mask: true
-- fname: email
+- name: email
   type: string
   comment: 邮箱
   mask: true

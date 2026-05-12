@@ -39,15 +39,21 @@ var validTypes = map[string]bool{
 
 // rawFieldConfig 表示 YAML 原始配置
 type rawFieldConfig struct {
-	FName   string `yaml:"fname"`   // 字段名（snake_case），同时作为 JSON 字段名
+	Name    string `yaml:"name"`    // 字段名（snake_case），同时作为 JSON 字段名
 	Type    string `yaml:"type"`    // 类型（int64, string, float64等）
 	Mask    bool   `yaml:"mask"`    // 是否需要脱敏
 	Comment string `yaml:"comment"` // 注释说明
 }
 
+// rawConfig 表示 YAML 根配置
+type rawConfig struct {
+	Service   string           `yaml:"service"`
+	LogFields []rawFieldConfig `yaml:"logfields"`
+}
+
 // FieldConfig 表示日志字段配置（内部使用，包含生成的字段）
 type FieldConfig struct {
-	Name     string // 字段名（PascalCase，从 fname 自动生成）
+	Name     string // 字段名（PascalCase，从 name 自动生成）
 	Type     string // 类型
 	JSONName string // JSON字段名
 	Mask     bool   // 是否需要脱敏
@@ -81,22 +87,22 @@ func Load(path string) ([]FieldConfig, error) {
 		return nil, fmt.Errorf("reading YAML file %s: %w", path, err)
 	}
 
-	var rawFields []rawFieldConfig
-	if err := yaml.Unmarshal(data, &rawFields); err != nil {
+	var rawCfg rawConfig
+	if err := yaml.Unmarshal(data, &rawCfg); err != nil {
 		return nil, fmt.Errorf("parsing YAML: %w", err)
 	}
 
 	// 转换并填充默认值
-	fields := make([]FieldConfig, len(rawFields))
-	for i, raw := range rawFields {
-		// 校验 fname 是否符合 snake_case 规范
-		if err := validateSnakeCase(raw.FName); err != nil {
+	fields := make([]FieldConfig, len(rawCfg.LogFields))
+	for i, raw := range rawCfg.LogFields {
+		// 校验 name 是否符合 snake_case 规范
+		if err := validateSnakeCase(raw.Name); err != nil {
 			return nil, err
 		}
 
-		// 从 fname 生成 Name（PascalCase），fname 同时作为 JSON 字段名
-		fields[i].Name = toPascalCase(raw.FName)
-		fields[i].JSONName = raw.FName
+		// 从 name 生成 Name（PascalCase），name 同时作为 JSON 字段名
+		fields[i].Name = toPascalCase(raw.Name)
+		fields[i].JSONName = raw.Name
 		fields[i].Type = raw.Type
 		fields[i].Mask = raw.Mask
 		fields[i].Comment = raw.Comment
@@ -118,11 +124,11 @@ func Load(path string) ([]FieldConfig, error) {
 //   - 示例：user_id, http_request_duration, trace_id
 func validateSnakeCase(s string) error {
 	if strings.TrimSpace(s) == "" {
-		return fmt.Errorf("fname is required")
+		return fmt.Errorf("name is required")
 	}
 
 	if !snakeCaseRegex.MatchString(s) {
-		return fmt.Errorf("invalid fname '%s': must be snake_case format (lowercase letters, numbers, underscores; start with letter; no consecutive/trailing underscores), see OpenTelemetry naming conventions", s)
+		return fmt.Errorf("invalid name '%s': must be snake_case format (lowercase letters, numbers, underscores; start with letter; no consecutive/trailing underscores), see OpenTelemetry naming conventions", s)
 	}
 
 	return nil

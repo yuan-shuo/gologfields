@@ -152,11 +152,12 @@ func TestLoad(t *testing.T) {
 	}{
 		{
 			name: "valid yaml",
-			content: `- fname: user_id
+			content: `logfields:
+- name: user_id
   type: int64
   mask: true
   comment: 用户ID
-- fname: user_name
+- name: user_name
   type: string
   comment: 用户名
 `,
@@ -165,7 +166,8 @@ func TestLoad(t *testing.T) {
 		},
 		{
 			name: "invalid snake_case - PascalCase",
-			content: `- fname: UserID
+			content: `logfields:
+- name: UserID
   type: int64
 `,
 			wantErr: true,
@@ -173,7 +175,8 @@ func TestLoad(t *testing.T) {
 		},
 		{
 			name: "invalid snake_case - hyphen",
-			content: `- fname: user-id
+			content: `logfields:
+- name: user-id
   type: string
 `,
 			wantErr: true,
@@ -181,7 +184,8 @@ func TestLoad(t *testing.T) {
 		},
 		{
 			name: "invalid snake_case - double underscore",
-			content: `- fname: user__id
+			content: `logfields:
+- name: user__id
   type: string
 `,
 			wantErr: true,
@@ -189,7 +193,8 @@ func TestLoad(t *testing.T) {
 		},
 		{
 			name: "invalid snake_case - leading underscore",
-			content: `- fname: _user_id
+			content: `logfields:
+- name: _user_id
   type: string
 `,
 			wantErr: true,
@@ -197,7 +202,8 @@ func TestLoad(t *testing.T) {
 		},
 		{
 			name: "invalid snake_case - trailing underscore",
-			content: `- fname: user_id_
+			content: `logfields:
+- name: user_id_
   type: string
 `,
 			wantErr: true,
@@ -205,23 +211,26 @@ func TestLoad(t *testing.T) {
 		},
 		{
 			name: "invalid snake_case - starts with number",
-			content: `- fname: 123_user
+			content: `logfields:
+- name: 123_user
   type: string
 `,
 			wantErr: true,
 			errMsg:  "snake_case",
 		},
 		{
-			name: "empty fname",
-			content: `- fname: ""
+			name: "empty name",
+			content: `logfields:
+- name: ""
   type: string
 `,
 			wantErr: true,
-			errMsg:  "fname is required",
+			errMsg:  "name is required",
 		},
 		{
 			name: "invalid type",
-			content: `- fname: user_id
+			content: `logfields:
+- name: user_id
   type: invalid_type
 `,
 			wantErr: true,
@@ -229,16 +238,17 @@ func TestLoad(t *testing.T) {
 		},
 		{
 			name:      "empty yaml",
-			content:   `[]`,
+			content:   `logfields: []`,
 			wantErr:   false,
 			wantCount: 0,
 		},
 		{
 			name: "complex snake_case",
-			content: `- fname: http_request_duration_ms
+			content: `logfields:
+- name: http_request_duration_ms
   type: int64
   comment: HTTP请求耗时
-- fname: trace_id
+- name: trace_id
   type: string
   comment: 追踪ID
 `,
@@ -350,11 +360,12 @@ func TestValidateSnakeCase(t *testing.T) {
 
 func TestLoadFieldConversion(t *testing.T) {
 	tempDir := t.TempDir()
-	content := `- fname: user_id
+	content := `logfields:
+- name: user_id
   type: int64
   mask: true
   comment: 用户ID
-- fname: email_address
+- name: email_address
   type: string
   mask: true
   comment: 邮箱地址

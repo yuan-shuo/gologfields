@@ -1,32 +1,52 @@
-# logfields.yaml
-# 日志字段定义文件
+# 需要满足 snake 命名规范的内容:
+# 1. service
+# 2. logfields[].name
+# 3. metrics[].name, metrics[].labels[].name
 
-# 字段说明：
-# - fname: 日志字段名（snake_case），会自动转换为 PascalCase 作为类型名
-# - type: Go 类型（string, int64, float64, bool 等）
-# - mask: 是否需要脱敏（可选，默认 false）
-# - comment: 字段注释说明（可选）
+# 观测服务名
+service: user
 
-- fname: user_id
-  type: int64
-  mask: true
-  comment: 用户ID
+# 日志字段清单
+logfields:
+- name: user_id # 日志字段名称
+  type: int64 # 日志字段给入类型
+  mask: true # (可选) 该字段是否需要实现脱敏
+  comment: 用户ID # (可选) 字段备注
 
-- fname: user_name
+- name: user_name
   type: string
   comment: 用户名
 
-- fname: phone
-  type: string
-  mask: true
-  comment: 手机号
+# 指标清单
+metrics:
+# Counter 类型示例
+- name: registrations_total # 指标名
+  help: Total number of user registrations # 指标备注
+  type: counter # 指标类型
+  labels: # 指标标签清单
+  - name: source # 标签名
+    vals: [app, web] # 该标签的可选值，强制要求输入，控制基数
+  - name: error_type
+    vals: ["*"] # 若给入"*"则此标签可以任意输入string类型值，但可能导致基数过高，并不是安全做法
+  methods: [inc, add] # 该指标所能使用的方法
 
-- fname: email
-  type: string
-  mask: true
-  comment: 邮箱
+# Gauge 类型示例
+- name: active_connections
+  help: Current number of active connections
+  type: gauge
+  labels:
+  - name: pool
+    vals: [default, cache, db]
+  methods: [set, inc, dec]
 
-- fname: order_id
-  type: int64
-  mask: true
-  comment: 订单ID
+# Histogram 类型示例
+- name: request_duration_ms
+  help: HTTP request duration in milliseconds
+  type: histogram
+  labels:
+  - name: method
+    vals: [GET, POST, PUT, DELETE]
+  - name: path
+    vals: ["*"]
+  buckets: [5, 10, 25, 50, 100, 250, 500, 1000]
+  methods: [observe]
